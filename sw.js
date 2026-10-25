@@ -1,6 +1,6 @@
 // Guarda solo la "cáscara" de la app (logo y pantalla de carga).
 // El contenido siempre viene en vivo de Google, por eso se actualiza solo.
-var CACHE = 'avance-esloan-v1';
+var CACHE = 'avance-esloan-v2';
 var ARCHIVOS = ['./', 'index.html', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png', 'apple-touch-icon.png'];
 
 self.addEventListener('install', function (e) {

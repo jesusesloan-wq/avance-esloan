@@ -46,21 +46,11 @@
     document.getElementById('carga').style.display = 'none';
     document.getElementById('sinRed').style.display = 'flex';
   } else {
-    var f = document.createElement('iframe');
-    f.id = 'app';
-    f.src = APP_URL + '?pwa=1';
-    f.allow = 'clipboard-write';
-    f.onload = function () {
-      var c = document.getElementById('carga');
-      c.style.opacity = '0';
-      setTimeout(function () { c.style.display = 'none'; }, 400);
-    };
-    document.body.appendChild(f);
+    // Abre la app de Google directo (sin marco extra): en el celular se desliza sin trabarse
+    setTimeout(function () { location.replace(APP_URL); }, 350);
   }
   window.addEventListener('offline', function () { document.getElementById('sinRed').style.display = 'flex'; });
   window.addEventListener('online', function () { location.reload(); });
-  // La app avisa cuando hay versión nueva y el usuario toca "Actualizar"
-  window.addEventListener('message', function (ev) { if (ev.data === 'esloan-recargar') location.reload(); });
 
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(function () {});
