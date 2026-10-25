@@ -22,6 +22,15 @@
   .barra i { display: block; width: 40%; height: 100%; background: linear-gradient(90deg, #6cc38f, #37c4ae); animation: ir 1.2s infinite ease-in-out; }
   @keyframes ir { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
   #sinRed { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 24px; background: #121a16; }
+  #bienvenida { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 24px; background: #121a16; }
+  #bienvenida img { width: 96px; height: 96px; border-radius: 22px; box-shadow: 0 0 40px rgba(108,195,143,.25); }
+  #bienvenida h2 { margin: 16px 0 6px; }
+  #bienvenida p { color: #9db3a6; font-size: 14px; max-width: 320px; margin: 8px auto; }
+  #bienvenida button { display: block; width: 260px; margin: 12px auto 0; padding: 13px; border: 0; border-radius: 10px; background: #6cc38f; color: #0e1712; font-weight: 700; font-size: 16px; }
+  #bienvenida button.sec { background: transparent; color: #8fd6ab; border: 1px solid #34483c; }
+  #bienvenida .tip { font-size: 12px; margin-top: 16px; }
+  #btnInstalar { display: none !important; }
+  #btnInstalar[style*="block"] { display: block !important; }
   #sinRed button { margin-top: 14px; padding: 10px 18px; border: 0; border-radius: 8px; background: #6cc38f; color: #0e1712; font-weight: 700; font-size: 15px; }
 </style>
 </head>
@@ -30,6 +39,16 @@
   <img src="icon-192.png" alt="">
   <p>AVANCE ESLOAN</p>
   <div class="barra"><i></i></div>
+</div>
+<div id="bienvenida">
+  <div>
+    <img src="icon-192.png" alt="">
+    <h2>Control de Avance Esloan</h2>
+    <p id="txtAcceso"></p>
+    <button id="btnInstalar" onclick="instalar()">📲 Instalar la app</button>
+    <button class="sec" onclick="abrir()">Abrir ahora</button>
+    <p class="tip">Si no aparece "Instalar", usa el menú del navegador (⋮ o compartir) → "Agregar a pantalla principal".</p>
+  </div>
 </div>
 <div id="sinRed">
   <div>
@@ -42,12 +61,39 @@
   // Enlace de la app de Google Apps Script (si cambia, solo se cambia aquí)
   var APP_URL = 'https://script.google.com/macros/s/AKfycbw9ICN1eXefGjxHXTAfuckV6OF5U2iqfH_U4nCuwDo_ZYoe9mI-oJ5FAlYwa4YVrjKYrA/exec';
 
+  // Clave del enlace de cada área (?acceso=...). Se guarda para que la app instalada la recuerde.
+  var acceso = '';
+  try { acceso = new URLSearchParams(location.search).get('acceso') || ''; } catch (e) {}
+  acceso = acceso.replace(/[^A-Za-z0-9]/g, '');
+  try {
+    if (acceso) localStorage.setItem('esloan_acceso', acceso);
+    else acceso = localStorage.getItem('esloan_acceso') || '';
+  } catch (e) {}
+  var DESTINO = APP_URL + (acceso ? '?acceso=' + acceso : '');
+  var instalada = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+
+  function abrir() { location.replace(DESTINO); }
   if (!navigator.onLine) {
     document.getElementById('carga').style.display = 'none';
     document.getElementById('sinRed').style.display = 'flex';
+  } else if (instalada) {
+    // App instalada: abre directo (sin marco extra) para que se deslice sin trabarse
+    setTimeout(abrir, 350);
   } else {
-    // Abre la app de Google directo (sin marco extra): en el celular se desliza sin trabarse
-    setTimeout(function () { location.replace(APP_URL); }, 350);
+    // En el navegador: deja instalarla antes de abrir
+    document.getElementById('carga').style.display = 'none';
+    document.getElementById('bienvenida').style.display = 'flex';
+    document.getElementById('txtAcceso').textContent = acceso ? 'Tu enlace de acceso quedó guardado en este celular.' : 'Sin enlace de acceso: podrás ver los avances, pero no registrar.';
+  }
+  var aviso = null;
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault(); aviso = e;
+    document.getElementById('btnInstalar').style.display = 'block';
+  });
+  function instalar() {
+    if (!aviso) return;
+    aviso.prompt();
+    aviso.userChoice.then(function () { aviso = null; document.getElementById('btnInstalar').style.display = 'none'; });
   }
   window.addEventListener('offline', function () { document.getElementById('sinRed').style.display = 'flex'; });
   window.addEventListener('online', function () { location.reload(); });
