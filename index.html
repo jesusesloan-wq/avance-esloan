@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Avance Esloan</title>
+<meta name="theme-color" content="#121a16">
+<meta name="description" content="Control de avance de Mallas y Campo abierto - Esloan">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Avance Esloan">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  html, body { margin: 0; height: 100%; background: #121a16; color: #e7efe9; font-family: Arial, sans-serif; }
+  #app { position: fixed; inset: 0; width: 100%; height: 100%; border: 0; }
+  #carga { position: fixed; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; background: #121a16; transition: opacity .4s; }
+  #carga img { width: 112px; height: 112px; border-radius: 26px; box-shadow: 0 0 40px rgba(108,195,143,.25); }
+  #carga p { margin: 0; font-size: 14px; letter-spacing: 2px; color: #9db3a6; }
+  .barra { width: 160px; height: 4px; border-radius: 2px; background: #1f2b25; overflow: hidden; }
+  .barra i { display: block; width: 40%; height: 100%; background: linear-gradient(90deg, #6cc38f, #37c4ae); animation: ir 1.2s infinite ease-in-out; }
+  @keyframes ir { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+  #sinRed { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 24px; background: #121a16; }
+  #sinRed button { margin-top: 14px; padding: 10px 18px; border: 0; border-radius: 8px; background: #6cc38f; color: #0e1712; font-weight: 700; font-size: 15px; }
+</style>
+</head>
+<body>
+<div id="carga">
+  <img src="icon-192.png" alt="">
+  <p>AVANCE ESLOAN</p>
+  <div class="barra"><i></i></div>
+</div>
+<div id="sinRed">
+  <div>
+    <h2>Sin conexión</h2>
+    <p>La app necesita internet para sincronizar con Google Sheets.</p>
+    <button onclick="location.reload()">Reintentar</button>
+  </div>
+</div>
+<script>
+  // Enlace de la app de Google Apps Script (si cambia, solo se cambia aquí)
+  var APP_URL = 'https://script.google.com/macros/s/AKfycbw9ICN1eXefGjxHXTAfuckV6OF5U2iqfH_U4nCuwDo_ZYoe9mI-oJ5FAlYwa4YVrjKYrA/exec';
+
+  if (!navigator.onLine) {
+    document.getElementById('carga').style.display = 'none';
+    document.getElementById('sinRed').style.display = 'flex';
+  } else {
+    var f = document.createElement('iframe');
+    f.id = 'app';
+    f.src = APP_URL + '?pwa=1';
+    f.allow = 'clipboard-write';
+    f.onload = function () {
+      var c = document.getElementById('carga');
+      c.style.opacity = '0';
+      setTimeout(function () { c.style.display = 'none'; }, 400);
+    };
+    document.body.appendChild(f);
+  }
+  window.addEventListener('offline', function () { document.getElementById('sinRed').style.display = 'flex'; });
+  window.addEventListener('online', function () { location.reload(); });
+  // La app avisa cuando hay versión nueva y el usuario toca "Actualizar"
+  window.addEventListener('message', function (ev) { if (ev.data === 'esloan-recargar') location.reload(); });
+
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(function () {});
+  }
+</script>
+</body>
+</html>
